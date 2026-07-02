@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>FreeWill Prospect Pages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#14223A; --cream:#F4ECE0; --coral:#E04F3E;
+    --navy-70:rgba(20,34,58,.7); --navy-15:rgba(20,34,58,.15); --navy-08:rgba(20,34,58,.08);
+    --ok:#2E7D4F;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--cream);color:var(--navy);font-family:'Inter Tight',sans-serif;font-size:16px;line-height:1.55;min-height:100vh}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .display{font-family:'Fraunces',serif}
+
+  header{display:flex;align-items:baseline;justify-content:space-between;padding:20px 32px;border-bottom:1px solid var(--navy-15)}
+  header .wordmark{font-family:'Fraunces',serif;font-weight:700;font-size:1.15rem}
+  header .wordmark span{color:var(--coral)}
+  nav{display:flex;gap:4px}
+  nav button{background:none;border:none;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--navy-70);padding:8px 14px;border-radius:99px}
+  nav button.active{background:var(--navy);color:var(--cream)}
+
+  main{max-width:1200px;margin:0 auto;padding:36px 32px 80px}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--coral);margin-bottom:10px}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(1.7rem,3.4vw,2.5rem);line-height:1.12;margin-bottom:10px}
+  .lede{color:var(--navy-70);max-width:56ch;margin-bottom:32px}
+
+  /* ---------- forms ---------- */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid .full{grid-column:1/-1}
+  label{display:block;font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--navy-70);margin-bottom:6px}
+  input,select,textarea{width:100%;background:#fff;border:1px solid var(--navy-15);border-radius:8px;padding:11px 13px;font:inherit;color:var(--navy)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--coral);outline-offset:1px;border-color:transparent}
+  textarea{resize:vertical}
+  .hint{font-size:.8rem;color:var(--navy-70);margin-top:5px}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--coral);color:#fff;border:none;border-radius:99px;padding:13px 26px;font-family:'JetBrains Mono',monospace;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+  .btn:hover{filter:brightness(1.06)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .btn.ghost{background:none;color:var(--navy);border:1px solid var(--navy-15)}
+  .btn.navy{background:var(--navy)}
+  .btn.small{padding:8px 16px;font-size:.68rem}
+
+  /* ---------- the working state ---------- */
+  .working{display:none;margin-top:28px;border-top:2px solid var(--navy);padding-top:20px}
+  .working .step{display:flex;gap:12px;align-items:baseline;font-family:'JetBrains Mono',monospace;font-size:.78rem;padding:6px 0;color:var(--navy-70)}
+  .working .step.on{color:var(--navy)}
+  .working .step.on::before{content:'▸';color:var(--coral)}
+  .working .step.done::before{content:'✓';color:var(--ok)}
+  .working .step::before{content:'·';width:14px;display:inline-block}
+
+  /* ---------- case view: brief + preview ---------- */
+  .case{display:none;grid-template-columns:400px 1fr;gap:28px;align-items:start}
+  @media(max-width:960px){.case{grid-template-columns:1fr}}
+  .brief{background:var(--navy);color:var(--cream);border-radius:14px;padding:26px;position:sticky;top:20px}
+  .brief h2{font-family:'Fraunces',serif;font-size:1.3rem;margin-bottom:4px}
+  .brief .sub{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;opacity:.6;margin-bottom:18px}
+  .brief section{margin-bottom:18px}
+  .brief h3{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--coral);margin-bottom:8px}
+  .brief ul{list-style:none}
+  .brief li{font-size:.86rem;padding:6px 0;border-bottom:1px solid rgba(244,236,224,.12)}
+  .brief li b{font-weight:600}
+  .brief li .ev{display:block;opacity:.65;font-size:.78rem;margin-top:2px}
+  .brief .chip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.66rem;background:rgba(244,236,224,.12);border-radius:99px;padding:3px 10px;margin:0 6px 6px 0}
+  .brief .risk{background:rgba(224,79,62,.18);border-left:3px solid var(--coral);padding:8px 10px;border-radius:0 6px 6px 0;font-size:.82rem;margin-bottom:8px}
+
+  .stage{background:#fff;border:1px solid var(--navy-15);border-radius:14px;overflow:hidden}
+  .stage .bar{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--navy-15);flex-wrap:wrap}
+  .stage .bar .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .stage iframe{width:100%;height:72vh;border:none;display:block;background:#fff}
+  .stage textarea.htmledit{height:72vh;border:none;border-radius:0;font-family:'JetBrains Mono',monospace;font-size:.78rem;display:none}
+
+  .revisebox{display:none;padding:14px 16px;border-top:1px solid var(--navy-15);background:var(--cream)}
+  .revisebox textarea{height:80px}
+  .revisebox .row{display:flex;gap:10px;margin-top:10px;align-items:center}
+
+  /* ---------- pages list ---------- */
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--navy-15)}
+  th{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;text-align:left;color:var(--navy-70);padding:12px 16px;border-bottom:2px solid var(--navy)}
+  td{padding:13px 16px;border-bottom:1px solid var(--navy-08);font-size:.9rem}
+  tr:hover td{background:var(--navy-08);cursor:pointer}
+  .pill{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.06em;text-transform:uppercase;border-radius:99px;padding:3px 10px}
+  .pill.draft{background:var(--navy-08);color:var(--navy)}
+  .pill.published{background:var(--ok);color:#fff}
+  .views{font-family:'JetBrains Mono',monospace;font-size:.8rem}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:.75rem;padding:12px 22px;border-radius:99px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw}
+  .toast.show{opacity:1}
+  .err{color:var(--coral);font-size:.85rem;margin-top:10px;display:none}
+
+  /* ---------- access gate ---------- */
+  .gate{max-width:380px;margin:12vh auto;text-align:center}
+  .gate input{text-align:center;font-family:'JetBrains Mono',monospace;letter-spacing:.2em;margin:18px 0 12px}
+  .view{display:none}.view.on{display:block}
+  .case.on{display:grid}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">FreeWill <span>/</span> Prospect Pages</div>
+  <nav id="nav" style="display:none">
+    <button data-view="new" class="active">New case</button>
+    <button data-view="list">All pages</button>
+    <button onclick="location.href='/admin.html'" type="button">Knowledge base ↗</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ================= GATE ================= -->
+  <div class="view gate on" id="view-gate">
+    <div class="eyebrow">Internal tool</div>
+    <h1 class="display">Team access</h1>
+    <input id="gate-code" type="password" placeholder="access code" autocomplete="off">
+    <br><button class="btn" onclick="unlock()">Enter</button>
+    <div class="err" id="gate-err">That code didn't work.</div>
+  </div>
+
+  <!-- ================= NEW CASE ================= -->
+  <div class="view" id="view-new">
+    <div class="eyebrow">New case</div>
+    <h1>From discovery call to prospect page.</h1>
+    <p class="lede">Paste the call transcript, add what you know, and review the brief before anything ships. You approve every page before it goes live.</p>
+
+    <div class="grid">
+      <div><label>Organization name</label><input id="f-org" placeholder="Jesuit High School Portland"></div>
+      <div><label>Vertical</label>
+        <select id="f-vertical">
+          <option value="catholic">Catholic parish / diocese</option>
+          <option value="evangelical">Evangelical church</option>
+          <option value="mainline">Mainline church</option>
+          <option value="k12">K-12 school</option>
+          <option value="higher-ed">Higher education</option>
+          <option value="rescue-mission">Rescue mission</option>
+          <option value="media-ministry">Media ministry</option>
+          <option value="other">Other nonprofit</option>
+        </select>
+      </div>
+      <div><label>Your name</label><input id="f-ae" placeholder="Tim McClendon"></div>
+      <div><label>Your email (shown on page, obfuscated)</label><input id="f-email" placeholder="tim@freewill.com"></div>
+      <div><label>Incumbent PG tool, if any</label><input id="f-tool" placeholder="PG Calc, Crescendo, none…"></div>
+      <div><label>Fiscal year end, if known</label><input id="f-fye" placeholder="June 30"></div>
+      <div class="full"><label>Anything the transcript won't capture</label><input id="f-notes" placeholder="Champion is the board chair; sensitive about a failed 2023 campaign…"></div>
+      <div class="full">
+        <label>Call transcript (paste from Gong)</label>
+        <textarea id="f-transcript" rows="12" placeholder="Paste the full transcript…"></textarea>
+        <div class="hint" id="t-count">0 words</div>
+      </div>
+    </div>
+    <div style="margin-top:22px"><button class="btn" id="btn-generate" onclick="generate()">Generate draft page</button></div>
+    <div class="err" id="new-err"></div>
+
+    <div class="working" id="working">
+      <div class="step" id="s1">Reading the transcript &amp; building the prospect brief</div>
+      <div class="step" id="s2">Matching FreeWill case studies &amp; materials</div>
+      <div class="step" id="s3">Writing the page (this is the long one — ~60–90s)</div>
+      <div class="step" id="s4">Saving draft</div>
+    </div>
+  </div>
+
+  <!-- ================= CASE (brief + preview) ================= -->
+  <div class="case" id="view-case">
+    <aside class="brief" id="brief"><!-- filled by JS --></aside>
+    <div class="stage">
+      <div class="bar">
+        <span class="mono" style="font-size:.72rem;letter-spacing:.08em;text-transform:uppercase" id="stage-title">Draft preview</span>
+        <div class="actions">
+          <button class="btn ghost small" onclick="toggleEdit()" id="btn-edit">Edit HTML</button>
+          <button class="btn ghost small" onclick="toggleRevise()">Revise with AI</button>
+          <button class="btn navy small" onclick="openFull()">Open full size</button>
+          <button class="btn small" onclick="publishPrompt()" id="btn-publish">Publish…</button>
+        </div>
+      </div>
+      <iframe id="preview" sandbox="allow-scripts allow-same-origin"></iframe>
+      <textarea class="htmledit" id="htmledit" spellcheck="false"></textarea>
+      <div class="revisebox" id="revisebox">
+        <label>What should change?</label>
+        <textarea id="revise-text" placeholder="Soften the IT tab, lead the FAQ with the board-approval question, and mention their June 30 fiscal year in Path Forward."></textarea>
+        <div class="row">
+          <button class="btn small" onclick="revise()" id="btn-revise">Apply revision</button>
+          <span class="mono" style="font-size:.72rem;color:var(--navy-70)" id="revise-status"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= LIST ================= -->
+  <div class="view" id="view-list">
+    <div class="eyebrow">All pages</div>
+    <h1>The board.</h1>
+    <p class="lede">Every draft and live page across the team. Views count real prospect opens — a page opened four times means someone's forwarding it.</p>
+    <table>
+      <thead><tr><th>Organization</th><th>Status</th><th>Owner</th><th>Views</th><th>Updated</th></tr></thead>
+      <tbody id="pages-body"><tr><td colspan="5" style="color:var(--navy-70)">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let CODE = sessionStorage.getItem('fw_code') || '';
+let CURRENT = { pageId:null, html:'', brief:null, slug:null, status:'draft' };
+
+/* ---------- plumbing ---------- */
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3200); }
+async function api(path, body){
+  const r = await fetch(path, {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({accessCode:CODE,...body})});
+  const data = await r.json().catch(()=>({error:'Bad response'}));
+  if(!r.ok) throw new Error(data.error || r.status);
+  return data;
+}
+function show(view){
+  document.querySelectorAll('.view,.case').forEach(v=>v.classList.remove('on'));
+  $('view-'+view).classList.add('on');
+  document.querySelectorAll('nav button[data-view]').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+  if(view==='list') loadPages();
+}
+document.querySelectorAll('nav button[data-view]').forEach(b=>b.onclick=()=>show(b.dataset.view));
+
+/* ---------- gate ---------- */
+async function unlock(){
+  CODE = $('gate-code').value.trim();
+  try{ await api('/api/pages',{action:'list'}); }
+  catch(e){ $('gate-err').style.display='block'; return; }
+  sessionStorage.setItem('fw_code', CODE);
+  $('nav').style.display='flex';
+  show('new');
+}
+$('gate-code').addEventListener('keydown',e=>{ if(e.key==='Enter') unlock(); });
+if(CODE){ $('gate-code').value=CODE; unlock(); }
+
+/* ---------- new case ---------- */
+$('f-transcript').addEventListener('input', e=>{
+  const w = e.target.value.trim().split(/\s+/).filter(Boolean).length;
+  $('t-count').textContent = w.toLocaleString()+' words' + (w>0 && w<300 ? ' — that looks short for a discovery call' : '');
+});
+
+async function generate(){
+  const form = {
+    orgName: $('f-org').value.trim(),
+    vertical: $('f-vertical').value,
+    aeName: $('f-ae').value.trim(),
+    aeEmail: $('f-email').value.trim(),
+    incumbentTool: $('f-tool').value.trim(),
+    fiscalYearEnd: $('f-fye').value.trim(),
+    aeNotes: $('f-notes').value.trim()
+  };
+  const transcript = $('f-transcript').value.trim();
+  $('new-err').style.display='none';
+  if(!form.orgName || transcript.length < 200){
+    $('new-err').textContent='Give me an organization name and a real transcript.';
+    $('new-err').style.display='block'; return;
+  }
+  $('btn-generate').disabled = true;
+  $('working').style.display='block';
+  ['s1','s2','s3','s4'].forEach(s=>$(s).className='step');
+  $('s1').classList.add('on');
+  // The API does all steps in one call; walk the UI on a timer that roughly matches reality.
+  const t1=setTimeout(()=>{$('s1').className='step done';$('s2').classList.add('on');}, 12000);
+  const t2=setTimeout(()=>{$('s2').className='step done';$('s3').classList.add('on');}, 16000);
+  try{
+    const data = await api('/api/generate', { form, transcript });
+    [t1,t2].forEach(clearTimeout);
+    ['s1','s2','s3'].forEach(s=>$(s).className='step done');
+    $('s4').className='step done';
+    CURRENT = { pageId:data.pageId, html:data.html, brief:data.brief, slug:null, status:'draft' };
+    renderBrief(data.brief, data.assetsUsed, $('f-org').value.trim());
+    renderPreview();
+    show('case');
+    toast('Draft ready — review the brief before publishing');
+  }catch(e){
+    [t1,t2].forEach(clearTimeout);
+    $('new-err').textContent = 'Generation failed: '+e.message;
+    $('new-err').style.display='block';
+  }finally{
+    $('btn-generate').disabled=false;
+    $('working').style.display='none';
+  }
+}
+
+/* ---------- brief panel ---------- */
+function esc(s){ return String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function renderBrief(b, assets, org){
+  const li = (arr, fn) => (arr||[]).map(fn).join('') || '<li style="opacity:.5">none found</li>';
+  $('brief').innerHTML = `
+    <h2>${esc(org)}</h2>
+    <div class="sub">What the call told us</div>
+    ${(b.risks||[]).length ? `<section><h3>Check before publishing</h3>${b.risks.map(r=>`<div class="risk">${esc(r)}</div>`).join('')}</section>`:''}
+    <section><h3>Snapshot</h3><p style="font-size:.86rem">${esc(b.org_snapshot||'')}</p></section>
+    <section><h3>Contacts</h3><ul>${li(b.contacts, c=>`<li><b>${esc(c.name)}</b> — ${esc(c.role)}<span class="ev">${esc(c.notes||'')}</span></li>`)}</ul></section>
+    <section><h3>Pain points</h3><ul>${li(b.pain_points, p=>`<li><b>${esc(p.key)}</b><span class="ev">"${esc(p.evidence)}"</span></li>`)}</ul></section>
+    <section><h3>Their language</h3>${(b.their_language||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</section>
+    <section><h3>Objections</h3><ul>${li(b.objections, o=>`<li>${esc(o.objection)}<span class="ev">${esc(o.context||'')}</span></li>`)}</ul></section>
+    <section><h3>Materials used on this page</h3><ul>${li(assets, a=>`<li>${esc(a.title)} <span class="ev">${esc(a.type)}</span></li>`)}</ul></section>`;
+}
+
+/* ---------- preview / edit / revise ---------- */
+function renderPreview(){ $('preview').srcdoc = CURRENT.html; }
+function openFull(){ const w=window.open('about:blank'); w.document.write(CURRENT.html); w.document.close(); }
+function toggleEdit(){
+  const ta=$('htmledit'), fr=$('preview'), editing = ta.style.display==='block';
+  if(editing){
+    CURRENT.html = ta.value; renderPreview();
+    ta.style.display='none'; fr.style.display='block';
+    $('btn-edit').textContent='Edit HTML';
+    api('/api/pages',{action:'saveHtml',pageId:CURRENT.pageId,html:CURRENT.html})
+      .then(()=>toast('Edits saved')).catch(e=>toast('Save failed: '+e.message));
+  }else{
+    ta.value = CURRENT.html; ta.style.display='block'; fr.style.display='none';
+    $('btn-edit').textContent='Save & preview';
+  }
+}
+function toggleRevise(){ const r=$('revisebox'); r.style.display = r.style.display==='block'?'none':'block'; }
+async function revise(){
+  const feedback = $('revise-text').value.trim();
+  if(!feedback) return;
+  $('btn-revise').disabled=true; $('revise-status').textContent='Revising… ~60s';
+  try{
+    const data = await api('/api/pages',{action:'revise',pageId:CURRENT.pageId,feedback});
+    CURRENT.html = data.html; renderPreview();
+    $('revise-text').value=''; $('revise-status').textContent='';
+    toast('Revision applied');
+  }catch(e){ $('revise-status').textContent='Failed: '+e.message; }
+  finally{ $('btn-revise').disabled=false; }
+}
+
+/* ---------- publish ---------- */
+function suggestSlug(name){ return name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40); }
+async function publishPrompt(){
+  const s = prompt('Publish at freewillprospects URL /p/…', CURRENT.slug || suggestSlug(CURRENT.brief?.org_snapshot ? $('f-org').value : $('f-org').value));
+  if(!s) return;
+  try{
+    const data = await api('/api/pages',{action:'publish',pageId:CURRENT.pageId,slug:s});
+    CURRENT.slug=data.slug; CURRENT.status='published';
+    const url = location.origin + data.url;
+    navigator.clipboard?.writeText(url);
+    $('stage-title').textContent = 'Live: /p/'+data.slug;
+    toast('Published — link copied: '+url);
+  }catch(e){ toast('Publish failed: '+e.message); }
+}
+
+/* ---------- list ---------- */
+async function loadPages(){
+  try{
+    const data = await api('/api/pages',{action:'list'});
+    $('pages-body').innerHTML = data.pages.map(p=>`
+      <tr onclick="openPage('${p.id}')">
+        <td><b>${esc(p.org_name)}</b>${p.slug?`<span class="mono" style="font-size:.72rem;color:var(--navy-70)"> /p/${esc(p.slug)}</span>`:''}</td>
+        <td><span class="pill ${p.status}">${p.status}</span></td>
+        <td>${esc(p.created_by||'')}</td>
+        <td class="views">${p.view_count||0}</td>
+        <td class="mono" style="font-size:.75rem">${new Date(p.updated_at).toLocaleDateString()}</td>
+      </tr>`).join('') || '<tr><td colspan="5" style="color:var(--navy-70)">No pages yet — start a new case.</td></tr>';
+  }catch(e){ $('pages-body').innerHTML = `<tr><td colspan="5">Failed to load: ${esc(e.message)}</td></tr>`; }
+}
+async function openPage(id){
+  try{
+    const {page} = await api('/api/pages',{action:'get',pageId:id});
+    CURRENT = { pageId:page.id, html:page.html, brief:page.brief, slug:page.slug, status:page.status };
+    renderBrief(page.brief||{}, (page.brief?._assets)||[], page.org_name);
+    renderPreview();
+    $('stage-title').textContent = page.status==='published' ? 'Live: /p/'+page.slug : 'Draft preview';
+    show('case');
+  }catch(e){ toast('Could not open: '+e.message); }
+}
+</script>
+</body>
+</html>
