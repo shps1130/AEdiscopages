@@ -1,0 +1,13 @@
+{
+  "rewrites": [
+    { "source": "/p/:slug", "destination": "/api/p/:slug" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    }
+  ]
+}

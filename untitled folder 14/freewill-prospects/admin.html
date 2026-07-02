@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>FreeWill Knowledge Base</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#14223A;--cream:#F4ECE0;--coral:#E04F3E;--navy-70:rgba(20,34,58,.7);--navy-15:rgba(20,34,58,.15);--navy-08:rgba(20,34,58,.08)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--cream);color:var(--navy);font-family:'Inter Tight',sans-serif;line-height:1.55}
+  header{display:flex;justify-content:space-between;align-items:baseline;padding:20px 32px;border-bottom:1px solid var(--navy-15)}
+  header .wordmark{font-family:'Fraunces',serif;font-weight:700}
+  header a{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--navy);text-decoration:none;letter-spacing:.08em;text-transform:uppercase}
+  main{max-width:900px;margin:0 auto;padding:36px 32px 80px}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--coral);margin-bottom:10px}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:2rem;margin-bottom:8px}
+  .lede{color:var(--navy-70);max-width:58ch;margin-bottom:28px}
+  label{display:block;font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--navy-70);margin:14px 0 6px}
+  input,select,textarea{width:100%;background:#fff;border:1px solid var(--navy-15);border-radius:8px;padding:11px 13px;font:inherit;color:var(--navy)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--coral);outline-offset:1px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .tags label{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--navy-15);border-radius:99px;padding:6px 12px;margin:0;cursor:pointer;text-transform:none;letter-spacing:0;font-size:.78rem;font-family:'Inter Tight',sans-serif}
+  .tags input{width:auto}
+  .btn{background:var(--coral);color:#fff;border:none;border-radius:99px;padding:13px 26px;font-family:'JetBrains Mono',monospace;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-top:20px}
+  .btn:disabled{opacity:.5}
+  .card{background:#fff;border:1px solid var(--navy-15);border-radius:12px;padding:16px 18px;margin-bottom:12px;display:flex;justify-content:space-between;gap:14px;align-items:start}
+  .card.inactive{opacity:.45}
+  .card h3{font-family:'Fraunces',serif;font-size:1.05rem}
+  .card .meta{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--coral);margin:2px 0 6px}
+  .card p{font-size:.85rem;color:var(--navy-70)}
+  .card button{background:none;border:1px solid var(--navy-15);border-radius:99px;padding:6px 14px;font-family:'JetBrains Mono',monospace;font-size:.64rem;cursor:pointer;white-space:nowrap}
+  h2{font-family:'Fraunces',serif;margin:44px 0 16px}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:.75rem;padding:12px 22px;border-radius:99px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <div class="wordmark">FreeWill <span style="color:var(--coral)">/</span> Knowledge Base</div>
+  <a href="/">← AE tool</a>
+</header>
+<main>
+  <div class="eyebrow">Marketing</div>
+  <h1>Feed the machine.</h1>
+  <p class="lede">Every case study, video, one-pager, and stat added here becomes raw material for prospect pages. Paste a rough description — the summary is written for you. Tag it well: tags decide which prospects see it.</p>
+
+  <div class="row">
+    <div><label>Title</label><input id="a-title" placeholder="St. Mary's Parish case study"></div>
+    <div><label>Type</label>
+      <select id="a-type">
+        <option value="case_study">Case study</option>
+        <option value="video">Video</option>
+        <option value="one_pager">One-pager</option>
+        <option value="stat">Stat / research</option>
+        <option value="logo">Partner logo</option>
+        <option value="faq">FAQ answer</option>
+      </select>
+    </div>
+  </div>
+  <label>URL (video link, PDF, logo image — optional for stats)</label>
+  <input id="a-url" placeholder="https://…">
+  <label>Describe it (paste anything — the blog post, the deck notes, an email)</label>
+  <textarea id="a-desc" rows="5" placeholder="St. Mary's launched planned giving in 2025, 340 wills created in year one, $2.1M in bequest commitments…"></textarea>
+
+  <label>Fits which verticals? (none checked = fits all)</label>
+  <div class="tags" id="a-verticals"></div>
+  <label>Speaks to which pain points?</label>
+  <div class="tags" id="a-pains"></div>
+
+  <label>Your name</label><input id="a-by" placeholder="Marketing team member" style="max-width:320px">
+  <br><button class="btn" id="a-add" onclick="addAsset()">Add to knowledge base</button>
+
+  <h2>Library</h2>
+  <div id="library">Loading…</div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const VERTICALS=['catholic','evangelical','mainline','k12','higher-ed','rescue-mission','media-ministry','other'];
+const PAINS=['no-pg-program','incumbent-tool','aging-donors','it-concerns','staff-capacity','board-buy-in','fiscal-year','donor-experience'];
+const $=id=>document.getElementById(id);
+let CODE = sessionStorage.getItem('fw_code') || prompt('Team access code');
+sessionStorage.setItem('fw_code', CODE||'');
+
+function chips(el, list, name){
+  el.innerHTML = list.map(v=>`<label><input type="checkbox" name="${name}" value="${v}">${v}</label>`).join('');
+}
+chips($('a-verticals'), VERTICALS, 'v');
+chips($('a-pains'), PAINS, 'p');
+const checked = n => [...document.querySelectorAll(`input[name="${n}"]:checked`)].map(i=>i.value);
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+async function api(body){
+  const r = await fetch('/api/assets',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({accessCode:CODE,...body})});
+  const d = await r.json().catch(()=>({error:'Bad response'}));
+  if(!r.ok) throw new Error(d.error||r.status);
+  return d;
+}
+
+async function addAsset(){
+  const asset = {
+    title:$('a-title').value.trim(), asset_type:$('a-type').value,
+    url:$('a-url').value.trim()||null, rawDescription:$('a-desc').value.trim(),
+    verticals:checked('v'), pain_points:checked('p'), created_by:$('a-by').value.trim()
+  };
+  if(!asset.title || !asset.rawDescription){ toast('Title and a description are required'); return; }
+  $('a-add').disabled=true;
+  try{
+    await api({action:'add', asset});
+    toast('Added — AEs can use it immediately');
+    ['a-title','a-url','a-desc'].forEach(i=>$(i).value='');
+    document.querySelectorAll('.tags input').forEach(i=>i.checked=false);
+    load();
+  }catch(e){ toast('Failed: '+e.message); }
+  finally{ $('a-add').disabled=false; }
+}
+
+async function load(){
+  try{
+    const {assets} = await api({action:'list'});
+    $('library').innerHTML = assets.map(a=>`
+      <div class="card ${a.active?'':'inactive'}">
+        <div>
+          <h3>${esc(a.title)}</h3>
+          <div class="meta">${esc(a.asset_type)} · ${(a.verticals||[]).join(', ')||'all verticals'} · ${(a.pain_points||[]).join(', ')||'—'}</div>
+          <p>${esc(a.summary)}</p>
+        </div>
+        <button onclick="toggle('${a.id}', ${!a.active})">${a.active?'Retire':'Restore'}</button>
+      </div>`).join('') || 'Empty — add the first asset above.';
+  }catch(e){ $('library').textContent='Failed to load: '+e.message; }
+}
+async function toggle(id, active){ try{ await api({action:'toggle',assetId:id,active}); load(); }catch(e){ toast(e.message); } }
+load();
+</script>
+</body>
+</html>
