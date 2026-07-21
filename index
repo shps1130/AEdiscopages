@@ -38,6 +38,8 @@
   input:focus,select:focus,textarea:focus{outline:2px solid var(--coral);outline-offset:1px;border-color:transparent}
   textarea{resize:vertical}
   .hint{font-size:.8rem;color:var(--navy-70);margin-top:5px}
+  .field-mark{display:inline-block;width:8px;height:8px;border-radius:50%;background:transparent;vertical-align:middle;margin-left:6px;transition:background .2s, box-shadow .2s}
+  .field-mark.filled{background:var(--coral);box-shadow:0 0 0 3px rgba(224,79,62,.15)}
 
   .btn{display:inline-flex;align-items:center;gap:8px;background:var(--coral);color:#fff;border:none;border-radius:99px;padding:13px 26px;font-family:'JetBrains Mono',monospace;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
   .btn:hover{filter:brightness(1.06)}
@@ -57,7 +59,7 @@
   /* ---------- case view: brief + preview ---------- */
   .case{display:none;grid-template-columns:400px 1fr;gap:28px;align-items:start}
   @media(max-width:960px){.case{grid-template-columns:1fr}}
-  .brief{background:var(--navy);color:var(--cream);border-radius:14px;padding:26px;position:sticky;top:20px}
+  .brief{background:var(--navy);color:var(--cream);border-radius:14px;padding:26px;position:sticky;top:20px;max-height:calc(100vh - 40px);overflow-y:auto}
   .brief h2{font-family:'Fraunces',serif;font-size:1.3rem;margin-bottom:4px}
   .brief .sub{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;opacity:.6;margin-bottom:18px}
   .brief section{margin-bottom:18px}
@@ -78,6 +80,15 @@
   .revisebox{display:none;padding:14px 16px;border-top:1px solid var(--navy-15);background:var(--cream)}
   .revisebox textarea{height:80px}
   .revisebox .row{display:flex;gap:10px;margin-top:10px;align-items:center}
+
+  .schedbox{grid-column:1/-1;background:#fff;border:1px solid var(--navy-15);border-radius:14px;overflow:hidden;margin-top:20px;clear:both;position:relative;z-index:1}
+  .schedbox .bar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--navy-15)}
+  .sched-step{padding:14px 16px;border-bottom:1px solid var(--navy-08);display:grid;grid-template-columns:1.2fr .7fr 1fr;gap:14px;align-items:start}
+  @media(max-width:800px){.sched-step{grid-template-columns:1fr}}
+  .sched-step .pending{background:rgba(224,79,62,.1);border-left:3px solid var(--coral);padding:6px 10px;border-radius:0 6px 6px 0;font-size:.78rem;margin-bottom:8px}
+  .sched-step .q{background:var(--navy-08);border-radius:8px;padding:8px 10px;font-size:.82rem;margin-bottom:6px}
+  .sched-step .q textarea{margin-top:6px;height:50px;font-size:.82rem}
+  .sched-accept{background:none;border:1px solid var(--coral);color:var(--coral);border-radius:99px;padding:4px 10px;font-family:'JetBrains Mono',monospace;font-size:.64rem;cursor:pointer;margin-left:8px}
 
   /* ---------- pages list ---------- */
   table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--navy-15)}
@@ -104,10 +115,13 @@
 
 <header>
   <div class="wordmark">FreeWill <span>/</span> Prospect Pages</div>
-  <nav id="nav" style="display:none">
+  <nav id="nav" style="display:none;align-items:center">
+    <span id="who" class="mono" style="display:none;font-size:.68rem;color:var(--navy-70);margin-right:8px"></span>
     <button data-view="new" class="active">New case</button>
     <button data-view="list">All pages</button>
+    <button data-view="inbox">Questions <span id="inbox-badge" class="mono" style="display:none;background:var(--coral);color:#fff;border-radius:99px;padding:1px 7px;font-size:.62rem;margin-left:2px"></span></button>
     <button onclick="location.href='/admin.html'" type="button">Knowledge base ↗</button>
+    <button onclick="logout()" type="button">Sign out</button>
   </nav>
 </header>
 
@@ -115,51 +129,81 @@
   <!-- ================= GATE ================= -->
   <div class="view gate on" id="view-gate">
     <div class="eyebrow">Internal tool</div>
-    <h1 class="display">Team access</h1>
-    <input id="gate-code" type="password" placeholder="access code" autocomplete="off">
-    <br><button class="btn" onclick="unlock()">Enter</button>
-    <div class="err" id="gate-err">That code didn't work.</div>
+    <h1 class="display" id="gate-title">Sign in</h1>
+    <div id="gate-login">
+      <input id="li-email" type="email" placeholder="you@freewill.com" autocomplete="email" style="letter-spacing:0;text-align:left">
+      <input id="li-pass" type="password" placeholder="password" autocomplete="current-password" style="letter-spacing:0;text-align:left;margin-top:0">
+      <br><button class="btn" onclick="doLogin()">Sign in</button>
+      <p class="hint" style="margin-top:14px">First time? <a href="#" onclick="gateMode('signup');return false">Create your account</a></p>
+    </div>
+    <div id="gate-signup" style="display:none">
+      <input id="su-name" placeholder="Full name" style="letter-spacing:0;text-align:left">
+      <input id="su-email" type="email" placeholder="you@freewill.com" style="letter-spacing:0;text-align:left;margin-top:0">
+      <input id="su-pass" type="password" placeholder="password (8+ characters)" style="letter-spacing:0;text-align:left;margin-top:0">
+      <input id="su-invite" type="password" placeholder="team invite code" style="margin-top:0">
+      <br><button class="btn" onclick="doSignup()">Create account</button>
+      <p class="hint" style="margin-top:14px"><a href="#" onclick="gateMode('login');return false">Back to sign in</a></p>
+    </div>
+    <div class="err" id="gate-err"></div>
   </div>
 
   <!-- ================= NEW CASE ================= -->
   <div class="view" id="view-new">
     <div class="eyebrow">New case</div>
-    <h1>From discovery call to prospect page.</h1>
-    <p class="lede">Paste the call transcript, add what you know, and review the brief before anything ships. You approve every page before it goes live.</p>
+    <h1>Paste the call. We'll do the reading.</h1>
+    <p class="lede">Drop the transcript. Hit read. The form fills itself in with what the call revealed — you review, add what wasn't discussed, and generate.</p>
 
-    <div class="grid">
-      <div><label>Organization name</label><input id="f-org" placeholder="Jesuit High School Portland"></div>
-      <div><label>Vertical</label>
-        <select id="f-vertical">
-          <option value="catholic">Catholic parish / diocese</option>
-          <option value="evangelical">Evangelical church</option>
-          <option value="mainline">Mainline church</option>
-          <option value="k12">K-12 school</option>
-          <option value="higher-ed">Higher education</option>
-          <option value="rescue-mission">Rescue mission</option>
-          <option value="media-ministry">Media ministry</option>
-          <option value="other">Other nonprofit</option>
-        </select>
-      </div>
-      <div><label>Your name</label><input id="f-ae" placeholder="Tim McClendon"></div>
-      <div><label>Your email (shown on page, obfuscated)</label><input id="f-email" placeholder="tim@freewill.com"></div>
-      <div><label>Incumbent PG tool, if any</label><input id="f-tool" placeholder="PG Calc, Crescendo, none…"></div>
-      <div><label>Fiscal year end, if known</label><input id="f-fye" placeholder="June 30"></div>
-      <div class="full"><label>Anything the transcript won't capture</label><input id="f-notes" placeholder="Champion is the board chair; sensitive about a failed 2023 campaign…"></div>
-      <div class="full">
-        <label>Call transcript (paste from Gong)</label>
-        <textarea id="f-transcript" rows="12" placeholder="Paste the full transcript…"></textarea>
-        <div class="hint" id="t-count">0 words</div>
+    <label>Call transcript (paste from Gong)</label>
+    <textarea id="f-transcript" rows="10" placeholder="Paste the full transcript…" style="font-family:'JetBrains Mono',monospace;font-size:.85rem"></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:10px">
+      <div class="hint" id="t-count">0 words</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn ghost small" id="btn-gong" onclick="openGongPicker()" style="display:none">↗ Import from Gong</button>
+        <button class="btn" id="btn-read" onclick="readCall()" style="background:var(--navy)" disabled>Read the call</button>
       </div>
     </div>
-    <div style="margin-top:22px"><button class="btn" id="btn-generate" onclick="generate()">Generate draft page</button></div>
-    <div class="err" id="new-err"></div>
+    <div style="margin-top:14px">
+      <label>Gong call link <span class="hint" style="font-family:'Inter Tight',sans-serif;font-size:.72rem;font-weight:normal;text-transform:none;letter-spacing:0;color:var(--navy-70);margin-left:6px">optional · lets you jump back to the source call from the case</span></label>
+      <input id="f-gong-url" type="url" placeholder="https://us-XXXXX.app.gong.io/call?id=…">
+    </div>
 
-    <div class="working" id="working">
-      <div class="step" id="s1">Reading the transcript &amp; building the prospect brief</div>
-      <div class="step" id="s2">Matching FreeWill case studies &amp; materials</div>
-      <div class="step" id="s3">Writing the page (this is the long one — ~60–90s)</div>
-      <div class="step" id="s4">Saving draft</div>
+    <div id="extraction-status" style="display:none;margin-top:18px;padding:14px 18px;background:var(--navy);color:var(--cream);border-radius:12px;font-family:'JetBrains Mono',monospace;font-size:.78rem"></div>
+
+    <div id="form-block" style="display:none;margin-top:28px">
+      <div class="eyebrow" style="color:var(--navy-70)">Review &amp; complete</div>
+      <p class="lede" style="margin-bottom:20px">Fields with a coral dot were pulled from the call. Fix anything wrong, fill anything missing.</p>
+      <div class="grid">
+        <div><label>Organization name <span class="field-mark" data-field="orgName"></span></label><input id="f-org" placeholder="Jesuit High School Portland"></div>
+        <div><label>Vertical <span class="field-mark" data-field="vertical"></span></label>
+          <select id="f-vertical">
+            <option value="catholic">Catholic parish / diocese</option>
+            <option value="evangelical">Evangelical church</option>
+            <option value="mainline">Mainline church</option>
+            <option value="k12">K-12 school</option>
+            <option value="higher-ed">Higher education</option>
+            <option value="rescue-mission">Rescue mission</option>
+            <option value="media-ministry">Media ministry</option>
+            <option value="other">Other nonprofit</option>
+          </select>
+        </div>
+        <div><label>Incumbent PG tool, if any <span class="field-mark" data-field="incumbentTool"></span></label><input id="f-tool" placeholder="PG Calc, Crescendo, none…"></div>
+        <div><label>Fiscal year end <span class="field-mark" data-field="fiscalYearEnd"></span></label><input id="f-fye" placeholder="June 30"></div>
+        <div><label>Your scheduling link</label><input id="f-meeting-link" placeholder="https://calendly.com/tim-freewill"></div>
+        <div><label>Notify this address when a prospect asks a question</label><input id="f-notify" type="email" placeholder="dev.director@theirorg.com"></div>
+        <div class="full"><label>Anything else worth knowing <span class="field-mark" data-field="aeNotes"></span></label><input id="f-notes" placeholder="Champion is the board chair; sensitive about a failed 2023 campaign…"></div>
+        <!-- Your identity, pre-filled from your profile — stays hidden since it never changes per-case -->
+        <input id="f-ae" type="hidden">
+        <input id="f-email" type="hidden">
+      </div>
+      <div style="margin-top:24px"><button class="btn" id="btn-generate" onclick="generate()">Generate draft page</button></div>
+      <div class="err" id="new-err"></div>
+
+      <div class="working" id="working">
+        <div class="step" id="s1">Reading the transcript &amp; building the prospect brief</div>
+        <div class="step" id="s2">Matching FreeWill case studies &amp; materials</div>
+        <div class="step" id="s3">Writing the page (this is the long one — ~60–90s)</div>
+        <div class="step" id="s4">Saving draft</div>
+      </div>
     </div>
   </div>
 
@@ -176,6 +220,16 @@
           <button class="btn small" onclick="publishPrompt()" id="btn-publish">Publish…</button>
         </div>
       </div>
+      <div id="activity-bar" style="display:none;padding:10px 16px;background:var(--cream);border-bottom:1px solid var(--navy-15);font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.04em;color:var(--navy)">
+        <span class="mono" style="font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--coral);margin-right:10px">Activity</span>
+        <span id="activity-summary">—</span>
+      </div>
+      <div id="urlbar" style="display:none;align-items:center;gap:10px;padding:12px 16px;background:var(--navy);border-bottom:1px solid var(--navy-15);flex-wrap:wrap">
+        <span class="mono" style="font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--coral)">Live URL</span>
+        <a id="urlbar-link" href="#" target="_blank" rel="noopener" style="flex:1;min-width:220px;color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:.82rem;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></a>
+        <button class="btn small" onclick="copyUrl()" id="btn-copy">Copy link</button>
+        <button class="btn ghost small" onclick="openLive()" style="color:var(--cream);border-color:rgba(244,236,224,.3)">Open ↗</button>
+      </div>
       <iframe id="preview" sandbox="allow-scripts allow-same-origin"></iframe>
       <textarea class="htmledit" id="htmledit" spellcheck="false"></textarea>
       <div class="revisebox" id="revisebox">
@@ -187,6 +241,16 @@
         </div>
       </div>
     </div>
+    <div class="schedbox" id="schedbox">
+      <div class="bar"><span class="mono" style="font-size:.72rem;letter-spacing:.08em;text-transform:uppercase">Path Forward schedule</span>
+        <button class="btn small" onclick="saveSchedule()">Save schedule</button></div>
+      <div style="padding:12px 16px;border-bottom:1px solid var(--navy-08);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <label style="margin:0">Question notifications go to:</label>
+        <input id="notify-email" type="email" placeholder="dev.director@theirorg.com" style="flex:1;min-width:200px">
+        <button class="btn ghost small" onclick="saveNotify()">Save</button>
+      </div>
+      <div id="sched-list"></div>
+    </div>
   </div>
 
   <!-- ================= LIST ================= -->
@@ -195,23 +259,51 @@
     <h1>The board.</h1>
     <p class="lede">Every draft and live page across the team. Views count real prospect opens — a page opened four times means someone's forwarding it.</p>
     <table>
-      <thead><tr><th>Organization</th><th>Status</th><th>Owner</th><th>Views</th><th>Updated</th></tr></thead>
-      <tbody id="pages-body"><tr><td colspan="5" style="color:var(--navy-70)">Loading…</td></tr></tbody>
+      <thead><tr><th>Organization</th><th>Status</th><th>Owner</th><th>Opens</th><th>Last opened</th><th>Updated</th></tr></thead>
+      <tbody id="pages-body"><tr><td colspan="6" style="color:var(--navy-70)">Loading…</td></tr></tbody>
     </table>
+  </div>
+
+  <!-- ================= INBOX ================= -->
+  <div class="view" id="view-inbox">
+    <div class="eyebrow">Questions</div>
+    <h1>What prospects are asking.</h1>
+    <p class="lede">Every question from your pages lands here. You answer in your own words — no bot speaks for you. When you answer, the prospect gets an email the moment it's done.</p>
+    <div id="inbox-list"><p style="color:var(--navy-70)">Loading…</p></div>
+  </div>
+  <!-- ================= GONG PICKER MODAL ================= -->
+  <div id="gong-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,34,58,.5);align-items:center;justify-content:center;padding:20px">
+    <div style="background:var(--cream);border-radius:16px;max-width:640px;width:100%;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(20,34,58,.4)">
+      <div style="padding:22px 26px;border-bottom:1px solid var(--navy-15);display:flex;justify-content:space-between;align-items:baseline">
+        <div>
+          <div class="eyebrow" style="margin-bottom:4px">Import from Gong</div>
+          <div style="font-family:'Fraunces',serif;font-size:1.25rem">Your recent calls</div>
+        </div>
+        <button onclick="closeGongPicker()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--navy-70);line-height:1">×</button>
+      </div>
+      <div id="gong-list" style="overflow-y:auto;flex:1;padding:6px 8px">
+        <div style="padding:32px;text-align:center;color:var(--navy-70);font-family:'JetBrains Mono',monospace;font-size:.78rem">Loading calls…</div>
+      </div>
+    </div>
   </div>
 </main>
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const $ = id => document.getElementById(id);
-let CODE = sessionStorage.getItem('fw_code') || '';
-let CURRENT = { pageId:null, html:'', brief:null, slug:null, status:'draft' };
+let SB = null;            // supabase client, created after /api/auth config fetch
+let SESSION = null;       // supabase session (holds access_token)
+let ME = null;            // my profile {id, email, full_name, role}
+let CURRENT = { pageId:null, html:'', brief:null, slug:null, status:'draft', schedule:[], readOnly:false };
 
 /* ---------- plumbing ---------- */
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3200); }
 async function api(path, body){
-  const r = await fetch(path, {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({accessCode:CODE,...body})});
+  const headers = {'content-type':'application/json'};
+  if (SESSION?.access_token) headers['authorization'] = 'Bearer ' + SESSION.access_token;
+  const r = await fetch(path, {method:'POST', headers, body:JSON.stringify(body||{})});
   const data = await r.json().catch(()=>({error:'Bad response'}));
   if(!r.ok) throw new Error(data.error || r.status);
   return data;
@@ -221,26 +313,214 @@ function show(view){
   $('view-'+view).classList.add('on');
   document.querySelectorAll('nav button[data-view]').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   if(view==='list') loadPages();
+  if(view==='inbox') loadInbox();
 }
 document.querySelectorAll('nav button[data-view]').forEach(b=>b.onclick=()=>show(b.dataset.view));
 
-/* ---------- gate ---------- */
-async function unlock(){
-  CODE = $('gate-code').value.trim();
-  try{ await api('/api/pages',{action:'list'}); }
-  catch(e){ $('gate-err').style.display='block'; return; }
-  sessionStorage.setItem('fw_code', CODE);
-  $('nav').style.display='flex';
-  show('new');
+/* ---------- inbox (Q&A) ---------- */
+async function loadInbox(){
+  try{
+    const {questions} = await api('/api/questions', {action:'inbox'});
+    const open = questions.filter(q=>q.status!=='answered');
+    const answered = questions.filter(q=>q.status==='answered');
+    const box = $('inbox-list');
+    const render = q => `
+      <div style="background:#fff;border:1px solid var(--navy-15);border-radius:12px;padding:16px 18px;margin-bottom:12px">
+        <div class="mono" style="font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:var(--coral);margin-bottom:4px">${esc(q.org_name||'')} · ${esc(q.section||'general')} · ${new Date(q.created_at).toLocaleDateString()}</div>
+        <div style="font-weight:600;margin-bottom:4px">${esc(q.question)}</div>
+        <div class="mono" style="font-size:.72rem;color:var(--navy-70);margin-bottom:10px">Asked by ${q.asker_name?esc(q.asker_name):'someone (anonymous)'}</div>
+        ${q.status==='answered'
+          ? `<div style="background:var(--navy);color:var(--cream);border-radius:8px;padding:10px 12px;font-size:.88rem">${esc(q.answer)}</div><div class="mono" style="font-size:.66rem;color:var(--navy-70);margin-top:5px">Answered by ${esc(q.answered_by||'')}</div>`
+          : `<textarea id="ans-${q.id}" placeholder="Write your answer…" style="width:100%;min-height:70px;border:1px solid var(--navy-15);border-radius:8px;padding:10px;font:inherit"></textarea>
+             <button class="btn small" style="margin-top:8px" onclick="answerQ('${q.id}')">Send answer</button>`}
+      </div>`;
+    box.innerHTML =
+      (open.length ? `<h2 style="font-family:'Fraunces',serif;font-size:1.1rem;margin:0 0 14px">Waiting for you (${open.length})</h2>` + open.map(render).join('') : `<p style="color:var(--navy-70)">No open questions. Nice.</p>`) +
+      (answered.length ? `<h2 style="font-family:'Fraunces',serif;font-size:1.1rem;margin:28px 0 14px">Answered</h2>` + answered.map(render).join('') : '');
+    updateInboxBadge(open.length);
+  }catch(e){ $('inbox-list').innerHTML = `<p style="color:var(--coral)">Failed to load: ${esc(e.message)}</p>`; }
 }
-$('gate-code').addEventListener('keydown',e=>{ if(e.key==='Enter') unlock(); });
-if(CODE){ $('gate-code').value=CODE; unlock(); }
+function updateInboxBadge(n){
+  const b = $('inbox-badge');
+  if(n>0){ b.textContent=n; b.style.display='inline'; } else { b.style.display='none'; }
+}
+async function answerQ(id){
+  const ta = $('ans-'+id);
+  const answer = ta.value.trim();
+  if(!answer) return;
+  try{
+    const r = await api('/api/questions', {action:'answer', questionId:id, answer});
+    toast(r.notified ? 'Answered — notification sent' : 'Answered (no recipient set for this page)');
+    loadInbox();
+  }catch(e){ toast('Failed: '+e.message); }
+}
 
+/* ---------- auth ---------- */
+function gateMode(mode){
+  $('gate-login').style.display = mode==='login' ? 'block' : 'none';
+  $('gate-signup').style.display = mode==='signup' ? 'block' : 'none';
+  $('gate-title').textContent = mode==='login' ? 'Sign in' : 'Create account';
+  $('gate-err').style.display='none';
+}
+function gateErr(msg){ $('gate-err').textContent = msg; $('gate-err').style.display='block'; }
+
+async function initAuth(){
+  try{
+    const cfg = await api('/api/auth', {action:'config'});
+    SB = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { data } = await SB.auth.getSession();
+    if (data?.session){ SESSION = data.session; await enter(); }
+    SB.auth.onAuthStateChange((_e, session)=>{ SESSION = session; });
+  }catch(e){ gateErr('Could not reach the server: '+e.message); }
+}
+async function doLogin(){
+  $('gate-err').style.display='none';
+  const { data, error } = await SB.auth.signInWithPassword({
+    email: $('li-email').value.trim(), password: $('li-pass').value
+  });
+  if (error) return gateErr(error.message);
+  SESSION = data.session;
+  await enter();
+}
+async function doSignup(){
+  $('gate-err').style.display='none';
+  try{
+    await api('/api/auth', {
+      action:'signup',
+      inviteCode: $('su-invite').value.trim(),
+      email: $('su-email').value.trim(),
+      password: $('su-pass').value,
+      fullName: $('su-name').value.trim()
+    });
+    const { data, error } = await SB.auth.signInWithPassword({
+      email: $('su-email').value.trim(), password: $('su-pass').value
+    });
+    if (error) return gateErr(error.message);
+    SESSION = data.session;
+    await enter();
+  }catch(e){ gateErr(e.message); }
+}
+async function enter(){
+  try{
+    const { profile } = await api('/api/auth', {action:'me'});
+    ME = profile;
+    $('nav').style.display='flex';
+    $('who').textContent = (ME.full_name || ME.email) + (ME.role==='manager' ? ' · manager' : '');
+    $('who').style.display='inline';
+    // Pre-fill the AE identity fields on the form
+    if ($('f-ae') && !$('f-ae').value) $('f-ae').value = ME.full_name || '';
+    if ($('f-email') && !$('f-email').value) $('f-email').value = ME.email || '';
+    show('new');
+    // Surface waiting-question count on the badge right away
+    api('/api/questions', {action:'inbox'}).then(d=>{
+      updateInboxBadge((d.questions||[]).filter(q=>q.status!=='answered').length);
+    }).catch(()=>{});
+    // Reveal the "Import from Gong" button if the integration is configured
+    checkGongStatus();
+  }catch(e){ gateErr('Signed in, but profile lookup failed: '+e.message); }
+}
+async function logout(){
+  await SB.auth.signOut();
+  location.reload();
+}
+document.addEventListener('DOMContentLoaded', initAuth);
+</script>
+<script>
 /* ---------- new case ---------- */
 $('f-transcript').addEventListener('input', e=>{
   const w = e.target.value.trim().split(/\s+/).filter(Boolean).length;
   $('t-count').textContent = w.toLocaleString()+' words' + (w>0 && w<300 ? ' — that looks short for a discovery call' : '');
+  $('btn-read').disabled = w < 100;
 });
+
+/* ---------- Gong picker ---------- */
+// Show the Gong button if the integration is wired up on the server side.
+// Runs once at sign-in from enter().
+async function checkGongStatus(){
+  try{
+    const d = await api('/api/gong', { action:'status' });
+    if(d.configured) $('btn-gong').style.display='inline-flex';
+  }catch(e){ /* silent — Gong is optional */ }
+}
+function closeGongPicker(){ $('gong-modal').style.display='none'; }
+async function openGongPicker(){
+  $('gong-modal').style.display='flex';
+  $('gong-list').innerHTML = '<div style="padding:32px;text-align:center;color:var(--navy-70);font-family:JetBrains Mono,monospace;font-size:.78rem">Loading your recent calls…</div>';
+  try{
+    const d = await api('/api/gong', { action:'listMine', daysBack:30 });
+    const calls = d.calls || [];
+    if(!calls.length){
+      $('gong-list').innerHTML = '<div style="padding:32px;text-align:center;color:var(--navy-70);font-size:.9rem">No calls found in the last 30 days.</div>';
+      return;
+    }
+    $('gong-list').innerHTML = calls.map(c=>{
+      const started = c.started ? new Date(c.started) : null;
+      const dateStr = started ? started.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '';
+      const timeStr = started ? started.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}) : '';
+      const durMin = c.duration ? Math.round(c.duration/60) : null;
+      return `
+        <div onclick="pickGongCall('${esc(c.id)}', '${esc(c.title).replace(/'/g,"\\'")}')"
+             style="padding:14px 18px;margin:2px 0;border-radius:10px;cursor:pointer;transition:background .12s"
+             onmouseover="this.style.background='rgba(20,34,58,.06)'" onmouseout="this.style.background='transparent'">
+          <div style="font-family:'Fraunces',serif;font-size:1rem;color:var(--navy);margin-bottom:2px">${esc(c.title)}</div>
+          <div class="mono" style="font-size:.7rem;color:var(--navy-70);letter-spacing:.06em">${esc(dateStr)}${timeStr?' · '+esc(timeStr):''}${durMin?' · '+durMin+' min':''}</div>
+        </div>`;
+    }).join('');
+  }catch(e){
+    $('gong-list').innerHTML = `<div style="padding:32px;text-align:center;color:var(--coral);font-size:.9rem">Couldn't load calls: ${esc(e.message)}</div>`;
+  }
+}
+async function pickGongCall(callId, title){
+  $('gong-list').innerHTML = `<div style="padding:32px;text-align:center;color:var(--navy-70);font-family:JetBrains Mono,monospace;font-size:.78rem">Fetching transcript for ${esc(title)}…</div>`;
+  try{
+    const d = await api('/api/gong', { action:'fetchTranscript', callId });
+    $('f-transcript').value = d.transcript;
+    // Fire input event so the word count + Read button state update
+    $('f-transcript').dispatchEvent(new Event('input'));
+    if(d.callUrl && $('f-gong-url')) $('f-gong-url').value = d.callUrl;
+    closeGongPicker();
+    toast('Transcript imported — hit "Read the call" to extract');
+  }catch(e){
+    $('gong-list').innerHTML = `<div style="padding:32px;text-align:center;color:var(--coral);font-size:.9rem">Fetch failed: ${esc(e.message)}</div>`;
+  }
+}
+
+async function readCall(){
+  const transcript = $('f-transcript').value.trim();
+  if(transcript.length < 200){ toast('Paste a real transcript first'); return; }
+  $('btn-read').disabled = true;
+  $('extraction-status').style.display='block';
+  $('extraction-status').textContent = '▸ Reading the call…';
+  try{
+    const data = await api('/api/extract', { transcript });
+    const f = data.form || {};
+    $('f-org').value = f.orgName || '';
+    if(f.vertical) $('f-vertical').value = f.vertical;
+    $('f-tool').value = f.incumbentTool || '';
+    $('f-fye').value = f.fiscalYearEnd || '';
+    $('f-notes').value = f.aeNotes || '';
+    // Meeting link isn't in the transcript — default to your last one for convenience
+    if(!$('f-meeting-link').value && localStorage.getItem('fw_last_meeting_link')){
+      $('f-meeting-link').value = localStorage.getItem('fw_last_meeting_link');
+    }
+    // Mark which fields the extraction actually filled with a coral dot
+    document.querySelectorAll('.field-mark').forEach(el=>el.classList.remove('filled'));
+    (data.extractedFields||[]).forEach(name=>{
+      const el = document.querySelector(`.field-mark[data-field="${name}"]`);
+      if(el) el.classList.add('filled');
+    });
+    const n = (data.extractedFields||[]).length;
+    $('extraction-status').innerHTML = `✓ Filled in <b>${n}</b> field${n===1?'':'s'} from the call. Review below, add anything missing, then generate.`;
+    $('form-block').style.display='block';
+    $('form-block').scrollIntoView({behavior:'smooth', block:'start'});
+  }catch(e){
+    $('extraction-status').textContent = 'Reading failed: '+e.message;
+    // Still show the form so the AE can fill it manually
+    $('form-block').style.display='block';
+  }finally{
+    $('btn-read').disabled = false;
+  }
+}
 
 async function generate(){
   const form = {
@@ -250,14 +530,19 @@ async function generate(){
     aeEmail: $('f-email').value.trim(),
     incumbentTool: $('f-tool').value.trim(),
     fiscalYearEnd: $('f-fye').value.trim(),
+    meetingLink: $('f-meeting-link').value.trim(),
+    notifyEmail: $('f-notify').value.trim(),
+    gongCallUrl: $('f-gong-url').value.trim(),
     aeNotes: $('f-notes').value.trim()
   };
   const transcript = $('f-transcript').value.trim();
   $('new-err').style.display='none';
   if(!form.orgName || transcript.length < 200){
-    $('new-err').textContent='Give me an organization name and a real transcript.';
+    $('new-err').textContent='Need an organization name (the form below) and a real transcript.';
     $('new-err').style.display='block'; return;
   }
+  // Remember scheduling link across cases so it's pre-filled next time
+  if(form.meetingLink) localStorage.setItem('fw_last_meeting_link', form.meetingLink);
   $('btn-generate').disabled = true;
   $('working').style.display='block';
   ['s1','s2','s3','s4'].forEach(s=>$(s).className='step');
@@ -270,9 +555,14 @@ async function generate(){
     [t1,t2].forEach(clearTimeout);
     ['s1','s2','s3'].forEach(s=>$(s).className='step done');
     $('s4').className='step done';
-    CURRENT = { pageId:data.pageId, html:data.html, brief:data.brief, slug:null, status:'draft' };
+    CURRENT = { pageId:data.pageId, html:data.html, brief:data.brief, slug:null, status:'draft', schedule:data.schedule||[], gongCallUrl:$('f-gong-url').value.trim() };
     renderBrief(data.brief, data.assetsUsed, $('f-org').value.trim());
     renderPreview();
+    renderSchedule();
+    if($('notify-email')) $('notify-email').value = $('f-notify').value.trim();
+    $('urlbar').style.display='none';
+    $('activity-bar').style.display='none';
+    $('btn-publish').textContent='Publish…';
     show('case');
     toast('Draft ready — review the brief before publishing');
   }catch(e){
@@ -289,9 +579,11 @@ async function generate(){
 function esc(s){ return String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function renderBrief(b, assets, org){
   const li = (arr, fn) => (arr||[]).map(fn).join('') || '<li style="opacity:.5">none found</li>';
+  const gongUrl = CURRENT.gongCallUrl || '';
   $('brief').innerHTML = `
     <h2>${esc(org)}</h2>
     <div class="sub">What the call told us</div>
+    ${gongUrl ? `<a href="${esc(gongUrl)}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--coral);text-decoration:none;background:rgba(224,79,62,.12);padding:6px 12px;border-radius:99px;margin-bottom:14px">↗ Back to Gong call</a>`:''}
     ${(b.risks||[]).length ? `<section><h3>Check before publishing</h3>${b.risks.map(r=>`<div class="risk">${esc(r)}</div>`).join('')}</section>`:''}
     <section><h3>Snapshot</h3><p style="font-size:.86rem">${esc(b.org_snapshot||'')}</p></section>
     <section><h3>Contacts</h3><ul>${li(b.contacts, c=>`<li><b>${esc(c.name)}</b> — ${esc(c.role)}<span class="ev">${esc(c.notes||'')}</span></li>`)}</ul></section>
@@ -318,6 +610,50 @@ function toggleEdit(){
   }
 }
 function toggleRevise(){ const r=$('revisebox'); r.style.display = r.style.display==='block'?'none':'block'; }
+
+/* ---------- schedule editor ---------- */
+function renderSchedule(){
+  const steps = CURRENT.schedule||[];
+  $('sched-list').innerHTML = steps.map((s,i)=>`
+    <div class="sched-step" data-i="${i}">
+      <div class="col">
+        <label>Step ${i+1} title</label><input value="${esc(s.title)}" oninput="editStep(${i},'title',this.value)">
+        <label style="margin-top:8px">Description</label><textarea rows="2" oninput="editStep(${i},'description',this.value)">${esc(s.description)}</textarea>
+      </div>
+      <div class="col">
+        <label>Stakeholder</label><input value="${esc(s.stakeholder)}" oninput="editStep(${i},'stakeholder',this.value)">
+        <label style="margin-top:8px">Date</label><input type="date" value="${esc(s.date)}" oninput="editStep(${i},'date',this.value)">
+        ${s.proposedDate?`<div class="pending">New date proposed by ${esc(s.proposedBy||'prospect')}: ${esc(s.proposedDate)}<button class="sched-accept" onclick="acceptProposed(${i})">Accept</button></div>`:''}
+        <label style="margin-top:8px">Meeting link</label><input value="${esc(s.meetingLink||'')}" oninput="editStep(${i},'meetingLink',this.value)">
+      </div>
+      <div class="col">
+        <label>Questions from the prospect</label>
+        ${(s.questions||[]).map((q,qi)=>`
+          <div class="q">${esc(q.text)}
+            <textarea placeholder="Write a reply…" oninput="editAnswer(${i},${qi},this.value)">${esc(q.answer||'')}</textarea>
+          </div>`).join('') || `<div style="font-size:.8rem;color:var(--navy-70)">None yet</div>`}
+      </div>
+    </div>`).join('') || `<div style="padding:16px;color:var(--navy-70);font-size:.85rem">No schedule steps were generated for this case.</div>`;
+}
+function editStep(i, field, value){ CURRENT.schedule[i][field] = value; }
+function editAnswer(i, qi, value){ CURRENT.schedule[i].questions[qi].answer = value; }
+function acceptProposed(i){
+  const s = CURRENT.schedule[i];
+  s.date = s.proposedDate; s.proposedDate = null; s.proposedBy = null;
+  renderSchedule();
+}
+async function saveSchedule(){
+  try{
+    await api('/api/schedule', { action:'saveAll', pageId:CURRENT.pageId, schedule:CURRENT.schedule });
+    toast('Schedule saved — live for the prospect');
+  }catch(e){ toast('Save failed: '+e.message); }
+}
+async function saveNotify(){
+  try{
+    await api('/api/pages', { action:'setNotify', pageId:CURRENT.pageId, notifyEmail:$('notify-email').value.trim() });
+    toast('Notification recipient saved');
+  }catch(e){ toast('Save failed: '+e.message); }
+}
 async function revise(){
   const feedback = $('revise-text').value.trim();
   if(!feedback) return;
@@ -332,41 +668,115 @@ async function revise(){
 }
 
 /* ---------- publish ---------- */
-function suggestSlug(name){ return name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40); }
+function suggestSlug(name){ return (name||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40); }
+function fullUrl(){ return location.origin + '/p/' + CURRENT.slug; }
+function showUrlBar(){
+  if(!CURRENT.slug){ $('urlbar').style.display='none'; return; }
+  const url = fullUrl();
+  $('urlbar-link').textContent = url;
+  $('urlbar-link').href = url;
+  $('urlbar').style.display='flex';
+}
+function copyUrl(){
+  const url = fullUrl();
+  navigator.clipboard?.writeText(url).then(
+    ()=>{ $('btn-copy').textContent='Copied ✓'; setTimeout(()=>$('btn-copy').textContent='Copy link',1800); },
+    ()=>toast('Copy failed — select and copy manually')
+  );
+}
+function openLive(){ window.open(fullUrl(), '_blank', 'noopener'); }
+function showActivityBar(page){
+  const bar = $('activity-bar');
+  // Only meaningful for published pages
+  if(page.status !== 'published'){ bar.style.display='none'; return; }
+  const opens = page.view_count || 0;
+  const last = page.last_opened_at;
+  let text;
+  if(opens === 0 || !last){
+    text = 'Published but not opened yet.';
+  } else {
+    const word = opens === 1 ? 'time' : 'times';
+    text = `Opened ${opens} ${word} · last ${relativeTime(last)}`;
+  }
+  $('activity-summary').textContent = text;
+  bar.style.display = 'block';
+}
 async function publishPrompt(){
-  const s = prompt('Publish at freewillprospects URL /p/…', CURRENT.slug || suggestSlug(CURRENT.brief?.org_snapshot ? $('f-org').value : $('f-org').value));
+  const s = prompt('Publish at freewillprospects URL /p/…', CURRENT.slug || suggestSlug($('f-org').value));
   if(!s) return;
   try{
     const data = await api('/api/pages',{action:'publish',pageId:CURRENT.pageId,slug:s});
     CURRENT.slug=data.slug; CURRENT.status='published';
-    const url = location.origin + data.url;
-    navigator.clipboard?.writeText(url);
     $('stage-title').textContent = 'Live: /p/'+data.slug;
-    toast('Published — link copied: '+url);
+    $('btn-publish').textContent = 'Update URL…';
+    showUrlBar();
+    copyUrl();
+    toast('Published — your link is shown above and copied');
   }catch(e){ toast('Publish failed: '+e.message); }
 }
 
 /* ---------- list ---------- */
+/* ---------- list (All pages board) ---------- */
+// Human-friendly relative time: "2h ago", "3d ago", "just now", etc.
+function relativeTime(iso){
+  if(!iso) return '';
+  const then = new Date(iso).getTime();
+  const s = Math.max(0, Math.floor((Date.now() - then) / 1000));
+  if(s < 60) return 'just now';
+  if(s < 3600) return Math.floor(s/60) + 'm ago';
+  if(s < 86400) return Math.floor(s/3600) + 'h ago';
+  if(s < 604800) return Math.floor(s/86400) + 'd ago';
+  return new Date(iso).toLocaleDateString();
+}
 async function loadPages(){
   try{
     const data = await api('/api/pages',{action:'list'});
-    $('pages-body').innerHTML = data.pages.map(p=>`
+    const isMgr = data.role === 'manager';
+    document.querySelector('#view-list .lede').textContent = isMgr
+      ? "Every deal across the team. Coral dot means new activity since you last checked. You can open any page read-only; owners keep editing rights."
+      : "Your drafts and live pages. Coral dot means the prospect opened it since you last checked — worth a light follow-up.";
+    // What was the newest last_opened_at last time this AE viewed the board?
+    // Anything opened after that gets a coral "new activity" dot.
+    const seenKey = 'fw_board_seen_at';
+    const lastSeen = parseInt(localStorage.getItem(seenKey) || '0', 10);
+    let newestOpen = lastSeen;
+    $('pages-body').innerHTML = data.pages.map(p=>{
+      const openedTs = p.last_opened_at ? new Date(p.last_opened_at).getTime() : 0;
+      const isNew = openedTs > lastSeen;
+      if(openedTs > newestOpen) newestOpen = openedTs;
+      const dot = isNew
+        ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--coral);margin-right:8px;vertical-align:middle" title="New activity since your last visit"></span>'
+        : '<span style="display:inline-block;width:8px;margin-right:8px"></span>';
+      return `
       <tr onclick="openPage('${p.id}')">
-        <td><b>${esc(p.org_name)}</b>${p.slug?`<span class="mono" style="font-size:.72rem;color:var(--navy-70)"> /p/${esc(p.slug)}</span>`:''}</td>
+        <td>${dot}<b>${esc(p.org_name)}</b>${p.slug?`<span class="mono" style="font-size:.72rem;color:var(--navy-70)"> /p/${esc(p.slug)}</span>`:''}</td>
         <td><span class="pill ${p.status}">${p.status}</span></td>
-        <td>${esc(p.created_by||'')}</td>
-        <td class="views">${p.view_count||0}</td>
+        <td>${esc(p.owner_name||p.created_by||'')}</td>
+        <td class="views">${p.view_count || 0} ${(p.view_count||0)===1?'open':'opens'}</td>
+        <td class="mono" style="font-size:.75rem;color:${isNew?'var(--coral)':'var(--navy-70)'}">${p.last_opened_at?relativeTime(p.last_opened_at):'—'}</td>
         <td class="mono" style="font-size:.75rem">${new Date(p.updated_at).toLocaleDateString()}</td>
-      </tr>`).join('') || '<tr><td colspan="5" style="color:var(--navy-70)">No pages yet — start a new case.</td></tr>';
-  }catch(e){ $('pages-body').innerHTML = `<tr><td colspan="5">Failed to load: ${esc(e.message)}</td></tr>`; }
+      </tr>`;
+    }).join('') || '<tr><td colspan="6" style="color:var(--navy-70)">No pages yet — start a new case.</td></tr>';
+    // Mark the board as seen (so next time only NEWER opens light up).
+    if(newestOpen) localStorage.setItem(seenKey, String(newestOpen));
+  }catch(e){ $('pages-body').innerHTML = `<tr><td colspan="6">Failed to load: ${esc(e.message)}</td></tr>`; }
 }
 async function openPage(id){
   try{
-    const {page} = await api('/api/pages',{action:'get',pageId:id});
-    CURRENT = { pageId:page.id, html:page.html, brief:page.brief, slug:page.slug, status:page.status };
+    const {page, readOnly} = await api('/api/pages',{action:'get',pageId:id});
+    CURRENT = { pageId:page.id, html:page.html, brief:page.brief, slug:page.slug, status:page.status, schedule:page.schedule||[], readOnly:!!readOnly, gongCallUrl:page.gong_call_url || page.form_inputs?.gongCallUrl || '' };
     renderBrief(page.brief||{}, (page.brief?._assets)||[], page.org_name);
     renderPreview();
-    $('stage-title').textContent = page.status==='published' ? 'Live: /p/'+page.slug : 'Draft preview';
+    renderSchedule();
+    if($('notify-email')) $('notify-email').value = page.notify_email || '';
+    // Managers viewing someone else's deal get a read-only stage
+    document.querySelectorAll('.stage .actions button, #schedbox .bar button').forEach(b=>{
+      b.style.display = CURRENT.readOnly && b.textContent !== 'Open full size' ? 'none' : '';
+    });
+    $('stage-title').textContent = (CURRENT.readOnly ? 'Read-only · ' : '') + (page.status==='published' ? 'Live: /p/'+page.slug : 'Draft preview');
+    $('btn-publish').textContent = page.status==='published' ? 'Update URL…' : 'Publish…';
+    showUrlBar();
+    showActivityBar(page);
     show('case');
   }catch(e){ toast('Could not open: '+e.message); }
 }
